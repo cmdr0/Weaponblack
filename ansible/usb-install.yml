@@ -4,6 +4,9 @@
   become: yes
   tasks:
 
+  - parted: device=/dev/sda unit=MiB
+    register: sda_info
+
   - parted:
       device: /dev/sda
       number: "{{ item.num }}"

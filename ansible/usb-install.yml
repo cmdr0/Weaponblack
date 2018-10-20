@@ -4,11 +4,13 @@
   become: yes
   tasks:
 
-  
-
   - name: Collect disk info
     parted: device=/dev/sda unit=MiB
     register: sda_info
+
+  - name: Prompt for install drive
+    debug:
+      var: sda_info.device
 
   - name: Remove all partitions from /dev/sda
     parted:

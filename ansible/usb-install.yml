@@ -4,10 +4,14 @@
   become: yes
   tasks:
 
-  - parted: device=/dev/sda unit=MiB
+  
+
+  - name: Collect disk info
+    parted: device=/dev/sda unit=MiB
     register: sda_info
 
-  - parted:
+  - name: Remove all partitions from /dev/sda
+    parted:
       device: /dev/sda
       number: "{{ item.num }}"
       state: absent

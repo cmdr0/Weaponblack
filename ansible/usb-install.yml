@@ -1,0 +1,12 @@
+- name: run the playbook tasks on the localhost
+  hosts: 127.0.0.1
+  connection: local
+  become: yes
+  tasks:
+
+  - parted:
+      device: /dev/sda
+      number: "{{ item.num }}"
+      state: absent
+    with_items:
+      - "{{ sda_info.partitions }}"

@@ -4,18 +4,75 @@
   become: yes
   tasks:
 
-  - name: Collect disk info
-    parted: device=/dev/sda unit=MiB
-    register: sda_info
+  - set_fact:
+      main_drive: "/dev/sda"
+      fstype: "ext4"
+      vg_name: "weaponblackVG"
+      swap_size: 16G
 
-  - name: Prompt for install drive
-    debug:
-      var: sda_info
-
-  - name: Remove all partitions from /dev/sda
+  - name: Gather /dev/sda info
     parted:
       device: /dev/sda
+      unit: MiB
+    register: sda_info
+  - name: Remove all partitions from /dev/sda
+    parted:
+      device: "{{ main_drive }}"
       number: "{{ item.num }}"
       state: absent
     with_items:
       - "{{ sda_info.partitions }}"
+
+  - name: Create Grub BIOS partition
+    parted:
+      label: gpt
+      device: "{{ main_drive }}"
+      number: 1
+      part_end: 1MiB
+      flags: [ bios_grub ]
+      state: present
+
+  - name: Create boot partition
+    parted:
+      label: gpt
+      device: "{{ main_drive }}"
+      number: 2
+      part_start: 1MiB
+      part_end: 1GiB
+      state: present
+  - name: Format boot partition
+    filesystem:
+      fstype: "{{ fstype }}"
+      dev: "{{ main_drive }}2"
+      force: yes
+
+  - name: Create LVM partition
+    parted:
+      label: gpt
+      device: "{{ main_drive }}"
+      number: 3
+      part_start: 1GiB
+      flags: [ LVM ]
+      state: present
+  - name: Create main volume group
+    lvg:
+      pvs: "{{ main_drive }}3"
+      vg: "{{ vg_name }}"
+  - name: Create swap volume
+    lvol:
+      lv: swap
+      vg: "{{ vg_name }}"
+      size: "{{ swap_size }}"
+  - name: Format swap volume
+    command: "mkswap /dev/mapper/{{ vg_name }}-swap"
+  - name: Create root volume
+    lvol:
+      lv: root
+      vg: "{{ vg_name }}"
+      size: 100%FREE
+  - name: Format root volume
+    filesystem:
+      fstype: "{{ fstype }}"
+      dev: "/dev/mapper/{{ vg_name }}-root"
+      force: yes
+

@@ -65,6 +65,8 @@
       size: "{{ swap_size }}"
   - name: Format swap volume
     command: "mkswap /dev/mapper/{{ vg_name }}-swap"
+  - name: Swapon
+    command: "swapon /dev/mapper/{{ vg_name }}-swap"
   - name: Create root volume
     lvol:
       lv: root
@@ -76,3 +78,18 @@
       dev: "/dev/mapper/{{ vg_name }}-root"
       force: yes
 
+  - name: Mount root fs
+    mount:
+      path: /mnt/
+      src: "/dev/mapper/{{ vg_name }}-root"
+      fstype: "{{ fstype }}"
+  - name: Mount boot fs
+    mount:
+      path: /mnt/boot/
+      src: "{{ main_drive }}2"
+      fstype: "{{ fstype }}"
+
+  - name: Pacstrap
+    command: pacstrap /mnt base base-devel ansible git
+  - name: Genfstab
+    command: genfstab -U -p /mnt >> /mnt/etc/fstab

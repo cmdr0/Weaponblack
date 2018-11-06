@@ -1,0 +1,11 @@
+- name: Package Management
+  hosts: 127.0.0.1
+  connection: local
+  become: yes
+  tasks:
+
+  - name: Blacklist pcspkr
+    lineinfile:
+      dest: /etc/modprobe.d/nobeep.conf
+      line: "blacklist pcspkr"
+      create: yes

@@ -1,0 +1,34 @@
+- name: Initial chroot
+  hosts: 127.0.0.1
+  connection: local
+  become: yes
+  tasks:
+
+  - set_fact:
+      user_name: cmdr0
+      real_name: Commander Zero
+
+  - name: Allow sudoers to sudo
+    lineinfile:
+      dest: /etc/sudoers
+      regexp: '^#\s*\%sudo\sALL=\(ALL\)\sALL.*$'
+      line: '%sudo ALL=(ALL) ALL'
+      backrefs: yes
+
+  - name: Add sudo group
+    group:
+      name: sudo
+      state: present
+
+  - name: "Add {{ user_name }}"
+    user:
+      name: "{{ user_name }}"
+      comment: "{{ real_name }}"
+      groups: sudo
+      append: yes
+
+  - name: Add/fix ~/.xinitrc
+    lineinfile:
+      path: "/home/{{ user_name }}/.xinitrc"
+      line: "exec startlxde"
+      create: yes

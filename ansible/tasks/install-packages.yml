@@ -1,0 +1,69 @@
+- name: Package Management
+  hosts: 127.0.0.1
+  connection: local
+  become: yes
+  tasks:
+
+  - name: Enable multilib
+    lineinfile:
+      dest: /etc/pacman.conf
+      regexp: '^#\s*\[multilib\].*$'
+      line: "[multilib]\nInclude = /etc/pacman.d/mirrorlist"
+      backrefs: yes
+
+  - name: pacman -Syu
+    pacman: "update_cache=yes upgrade=yes"
+
+  - name: Mandatory
+    pacman:
+      state: present
+      name: [ sudo ]
+
+  - name: Wifi packages
+    pacman:
+      state: present
+      name: [ dialog, wpa_supplicant ]
+
+  - name: Video drivers
+    pacman:
+      state: present
+      name: [ xf86-video-vesa, xf86-video-ati, xf86-video-intel, lib32-mesa ]
+
+  - name: Xorg packages
+    pacman:
+      state: present
+      name: [ xorg-server, xorg-xinit, xterm ]
+
+  - name: LXDE
+    pacman:
+      state: present
+      name: [ lxde-gtk3, compton ]
+  - systemd:
+      name: lxdm
+      enabled: yes
+      masked: no
+  - copy:
+      src: /usr/share/applications/compton.desktop
+      dest: /etc/xdg/autostart
+  - copy:
+      src: /usr/share/applications/guake.desktop
+      dest: /etc/xdg/autostart
+
+  - name: Network-Manager
+    pacman:
+      state: present
+      name: [ networkmanager ]
+  - systemd:
+      name: NetworkManager
+      enabled: yes
+      masked: no
+
+  - name: Fonts
+    pacman:
+      state: present
+      name: [ ttf-roboto, ttf-fira-mono, ttf-dejavu ]
+
+  - name: Personal Choice
+    pacman:
+      state: present
+      name: [ firefox, guake ]

@@ -66,4 +66,9 @@
   - name: Personal Choice
     pacman:
       state: present
-      name: [ firefox, guake ]
+      name: [ firefox, guake, mupdf ]
+
+  - name: Development
+    pacman:
+      state: present
+      name: [ docker, code, git ]
